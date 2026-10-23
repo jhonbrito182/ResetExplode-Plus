@@ -1,3 +1,19 @@
+# RESET EXPLODE PLUS
+
+## Novidades desta versão
+
+**Limpeza personalizada**
+- Nova ferramenta para escolher áreas do Windows a limpar: arquivos temporários do usuário e do Windows, cache de shaders DirectX, miniaturas e Lixeira.
+- A limpeza ignora arquivos recentes ou em uso quando necessário.
+
+**Desinstalador**
+- Nova página para localizar e pesquisar programas instalados.
+- Inicia o desinstalador registrado pelo próprio programa após confirmação.
+
+**Identidade RESET EXPLODE PLUS**
+- Nome atualizado na interface do aplicativo e nas informações da release.
+
+---
 ## Novidades da v0.16
 
 **Nova página · RESET FERRAMENTAS › Inicialização**
