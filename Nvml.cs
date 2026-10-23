@@ -1,4 +1,4 @@
-﻿using System.Runtime.InteropServices;
+using System.Runtime.InteropServices;
 using System.Text;
 
 namespace ResetExplode;
@@ -81,7 +81,7 @@ internal static class Nvml
     {
         0 => null,
         3 => "o driver não permite este ajuste nesta placa",
-        4 => "sem permissão (abra o RESET EXPLODE como administrador)",
+        4 => "sem permissão (abra o RESET EXPLODE PLUS como administrador)",
         2 => "valor fora da faixa aceita",
         _ => $"erro NVML {code}"
     };

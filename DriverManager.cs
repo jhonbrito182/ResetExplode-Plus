@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using System.IO;
 using System.Globalization;
 using System.Management;
@@ -351,7 +351,7 @@ public static class DriverManager
         try
         {
             var psi = new ProcessStartInfo("powershell.exe",
-                "-NoProfile -NonInteractive -Command \"Checkpoint-Computer -Description 'RESET EXPLODE - antes do driver' -RestorePointType MODIFY_SETTINGS -ErrorAction Stop\"")
+                "-NoProfile -NonInteractive -Command \"Checkpoint-Computer -Description 'RESET EXPLODE PLUS - antes do driver' -RestorePointType MODIFY_SETTINGS -ErrorAction Stop\"")
             { UseShellExecute = false, CreateNoWindow = true, RedirectStandardError = true, RedirectStandardOutput = true };
             using var p = Process.Start(psi)!;
             using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(60));

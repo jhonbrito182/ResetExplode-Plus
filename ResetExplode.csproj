@@ -9,7 +9,7 @@
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <ApplicationIcon>Assets\app.ico</ApplicationIcon>
     <AssemblyName>ResetExplode</AssemblyName>
-    <Product>RESET EXPLODE</Product>
+    <Product>RESET EXPLODE PLUS</Product>
     <Version>0.16.0</Version>
     <!-- Sempre otimizado: o RESET BENCH e os stress tests precisam do JIT otimizado também em Debug -->
     <Optimize>true</Optimize>
