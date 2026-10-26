@@ -2,7 +2,7 @@
 
 Ferramentas para manutenção e personalização do Windows, com recursos para otimizar o sistema, gerenciar programas e drivers e fazer limpezas específicas.
 
-**Este projeto é um fork** do [ResetExplode original](https://github.com/GustavoReset/ResetExplode), com recursos e identidade próprios.
+**Este projeto é um fork** com recursos adicionais.
 
 ## Recursos
 
