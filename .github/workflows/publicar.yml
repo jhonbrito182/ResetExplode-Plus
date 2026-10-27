@@ -1,12 +1,10 @@
 name: Publicar
 
-# A cada push na main, gera o ResetExplode.exe e atualiza a release "latest" do RESET EXPLODE PLUS (sempre a versão mais nova).
-# Ao criar uma tag (ex.: v0.12), gera também uma release fixa dessa versão.
+# Só publica quando o commit da main começa com "feat:".
+# README, documentação e correções não alteram releases existentes.
 on:
   push:
     branches: [main]
-    tags: ['v*']
-  workflow_dispatch:
 
 permissions:
   contents: write
@@ -16,38 +14,69 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  build:
+  release:
+    if: startsWith(github.event.head_commit.message, 'feat:')
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0.x'
 
-      - name: Publicar (arquivo único, com o .NET embutido)
+      - name: Determinar próxima versão
+        id: version
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          $tags = git tag --list 'v*' | Where-Object { $_ -match '^v\d+\.\d+(\.\d+)?$' }
+          if ($tags) {
+            $current = $tags | ForEach-Object { $_ -replace '^v', '' } | Sort-Object { [version]$_ } -Descending | Select-Object -First 1
+            $parts = $current.Split('.')
+            $major = [int]$parts[0]
+            $minor = [int]$parts[1]
+          } else {
+            $releaseName = gh release view latest --json name --jq .name
+            if ($releaseName -notmatch 'v(?<major>\d+)\.(?<minor>\d+)') {
+              throw "Não consegui identificar a versão atual pelo título da release: $releaseName"
+            }
+            $major = [int]$Matches.major
+            $minor = [int]$Matches.minor
+          }
+          $version = "v$major.$($minor + 1)"
+          "version=$version" >> $env:GITHUB_OUTPUT
+
+      - name: Publicar executável
         run: dotnet publish ResetExplode.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:DebugType=None -o dist -nologo
 
-      - name: Montar pacote
+      - name: Montar arquivos da versão
         shell: pwsh
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
         run: |
           Copy-Item LEIA-ME.txt dist/LEIA-ME.txt
-          Compress-Archive -Path dist/ResetExplode.exe, dist/LEIA-ME.txt -DestinationPath ResetExplode.zip
+          $exe = "ResetExplodePlus-$env:VERSION.exe"
+          $zip = "ResetExplodePlus-$env:VERSION.zip"
+          Copy-Item dist/ResetExplode.exe $exe
+          Compress-Archive -Path $exe, dist/LEIA-ME.txt -DestinationPath $zip
+          "exe=$exe" >> $env:GITHUB_ENV
+          "zip=$zip" >> $env:GITHUB_ENV
 
-      - name: Atualizar release "latest"
-        if: startsWith(github.ref, 'refs/heads/')
+      - name: Criar nova release
         shell: pwsh
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ steps.version.outputs.version }}
+          COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
         run: |
-          $sha = "$env:GITHUB_SHA".Substring(0, 7)
-          gh release delete latest --cleanup-tag --yes
-          gh release create latest ResetExplode.zip dist/ResetExplode.exe --target $env:GITHUB_SHA --latest --title "RESET EXPLODE PLUS (versão mais recente)" --notes-file NOVIDADES.md
-
-      - name: Release da versão (tag)
-        if: startsWith(github.ref, 'refs/tags/')
-        shell: pwsh
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh release create $env:GITHUB_REF_NAME ResetExplode.zip dist/ResetExplode.exe --title "RESET EXPLODE PLUS $env:GITHUB_REF_NAME" --generate-notes --latest=false
+          $lines = $env:COMMIT_MESSAGE -split "`r?`n"
+          $summary = $lines[0] -replace '^feat:\s*', ''
+          $details = ($lines | Select-Object -Skip 1) -join "`n"
+          $notes = "## Novidades`n`n- $summary"
+          if (-not [string]::IsNullOrWhiteSpace($details)) {
+            $notes += "`n`n$($details.Trim())"
+          }
+          gh release create $env:VERSION $env:EXE $env:ZIP --target $env:GITHUB_SHA --latest --title "RESET EXPLODE PLUS - $env:VERSION" --notes $notes
